@@ -2,6 +2,7 @@ import pygame
 import time
 import platform
 import asyncio
+import sys 
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
@@ -17,13 +18,30 @@ async def main():
     y = 0
     dt = 0.1
     Y_GRAVITY = 1
-    JUMP_HEIGHT = 20
+    JUMP_HEIGHT = 23
     Y_VELOCITY = JUMP_HEIGHT
     jumping = False
     walking = True 
+    facing_right = True
+
+    # FONTY
+
+    font_title = pygame.font.SysFont(None, 64)
+    font_button = pygame.font.SysFont(None, 36)
+
+    # TLACITKA 
+    quit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, 250, 200, 50)
+    play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, 350, 200, 50 )
+
+    # GAME STATE
+
+    GAME_STATE_MENU = "menu"
+    GAME_STATE_PLAYING = "playing"
+    current_state = GAME_STATE_MENU
+
+
 
     # PLAYER SETTINGS
-
     player_img = pygame.image.load('pepstein_lopta.png')
     player_img = pygame.transform.scale(player_img, (85, 85))
     player_rect = player_img.get_rect()
@@ -32,11 +50,13 @@ async def main():
 
     # OBJECTS SETTINGS
 
+    background_img = pygame.image.load('background.png')
     triangle_img = pygame.image.load('trojuhelnik.png')
     square_img = pygame.image.load('ctverec.png')
     rectangle_img = pygame.image.load('obdelnik.png')
 
-    triangle_img = pygame.transform.scale(triangle_img, (120, 120))
+    background_img = pygame.transform.scale(background_img, (1280, 720))
+    triangle_img = pygame.transform.scale(triangle_img, (95, 95))
     square_img = pygame.transform.scale(square_img, (170, 170))
     rectangle_img = pygame.transform.scale(rectangle_img, (80, 190))
 
@@ -58,21 +78,22 @@ async def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.fill((255, 255, 255))
+
+        screen.blit(background_img, (0, 0))
         screen.blit(player_img, player_rect)
         pygame.draw.rect(screen, (255, 0, 0), player_rect, 2 )
 
         # OBJEKTY NA PARKOUR
         screen.blit(triangle_img, triangle_rect)
-        screen.blit(square_img, square_rect)
-        screen.blit(rectangle_img, rectangle_rect)
 
         # KOLIZE S OBJEKTY NA PARKOUR
 
-        if player_rect.colliderect(triangle_rect):
+        if player_rect.colliderect(triangle_rect) and facing_right == True:
             player_rect.x -= 150
 
-        if player_rect.colliderect()
+        if player_rect.colliderect(triangle_rect) and not facing_right:
+            player_rect.x += 150
+
 
         # OBJEKTY
 
@@ -108,9 +129,11 @@ async def main():
 
         if walking:
             player_rect.x += 7    
+            facing_right = True
 
         if not walking:
             player_rect.x -= 7
+            facing_right = False 
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -126,7 +149,6 @@ async def main():
 
         # ANIMATIONS
 
-        
 
         clock.tick(60) # Frames per Scond
 
