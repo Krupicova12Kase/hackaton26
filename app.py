@@ -34,30 +34,34 @@ class Player():
         self.velocity_y = 0
         self.jumping = False
         self.bouncing = False
-        self.bounce_counter = 0
+        self.bounce_timer = 0
         self.direction = "none"
+        self.old_rect = None
 
     def controller(self):
+        keys = pygame.key.get_pressed()
+
+        # Skok
+        if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not self.jumping:
+            self.velocity_y = VELOCITY_Y
+            self.jumping = True
+
+        # Pohyb do stran (jen když nevyprší časovač odrazu)
+        if self.bounce_timer <= 0:
+            if keys[pygame.K_a]:
+                self.velocity_x = -VELOCITY_X
+                self.direction = "left"
+            elif keys[pygame.K_d]:
+                self.velocity_x = VELOCITY_X
+                self.direction = "right"
+        else:
+            self.bounce_timer -= 1
+
         self.move()
         self.draw()
-
-        action_keys = [pygame.K_w, pygame.K_a, pygame.K_d, pygame.K_SPACE]
-        keys = pygame.key.get_pressed()
-        if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not self.jumping:
-            if not self.jumping:
-                self.velocity_y = VELOCITY_Y
-                self.jumping = True
-
-        if keys[pygame.K_a]:
-            self.velocity_x = -VELOCITY_X #if not self.bouncing else -VELOCITY_X / 2
-            self.direction = "left"
-
-        if keys[pygame.K_d]:
-            self.velocity_x = VELOCITY_X #if not self.bouncing else VELOCITY_X / 2
-            self.direction = "right"
         
-        if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
-            self.direction = "none"
+        # if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
+        #     self.direction = "none"
 
     def move(self):
         if not self.bouncing:
@@ -73,49 +77,55 @@ class Player():
         elif self.rect.x + self.rect.width > screen.width:
             self.rect.x = screen.width - self.rect.width
 
-        # jumping
-        self.velocity_y += GRAVITY
-        self.rect.y += self.velocity_y # NA JAKYMKOLIV JINYM RADKU SE TO GLITCHUJE, NEPRESOUVAT!!!
+        old_rect = self.rect.copy()
+        self.rect.x += self.velocity_x
+        
         collidedrect = check_collisions()
+
+        # bouncing with collisions
+        if collidedrect:
+                self.bounce_timer = 15
+                self.bouncing = True
+                if old_rect.right <= collidedrect.left:      # Narazil zleva
+                    self.rect.right = collidedrect.left      # Vytlačit ven z objektu!
+                    self.velocity_x = -20
+                    self.velocity_y = -10                    # Lehké nadhození při nárazu z boku
+                elif old_rect.left >= collidedrect.right:    # Narazil zprava
+                    self.rect.left = collidedrect.right      # Vytlačit ven z objektu!
+                    self.velocity_x = 20
+                    self.velocity_y = -10
+                    
+         # jumping
+        self.velocity_y += GRAVITY
+        old_rect = self.rect.copy()
+        self.rect.y += self.velocity_y # NA JAKYMKOLIV JINYM RADKU SE TO GLITCHUJE, NEPRESOUVAT!!!
+        
+        collidedrect = check_collisions()
+        
+        if collidedrect:
+            self.bouncing = True
+            if old_rect.bottom <= collidedrect.top:      # Dopadl na překážku shora
+                self.rect.bottom = collidedrect.top
+                self.velocity_y = -15                    # Vystřelit nahoru
+                # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
+                self.velocity_x = 15 if self.direction == "right" else -15
+            elif old_rect.top >= collidedrect.bottom:    # Narazil hlavou zespodu
+                self.rect.top = collidedrect.bottom
+                self.velocity_y = 10                     # Odrazit dolů
+                
+                
+            if old_rect.top <= collidedrect.top:
+                self.velocity_y = -10
+            elif old_rect.bottom <= collidedrect.bottom:
+                self.velocity_y = +10
+   
+        elif self.rect.y + self.rect.height >= FLOOR_Y:
+            self.bouncing = False
 
         if self.rect.y + self.rect.height > FLOOR_Y:
             self.rect.y = FLOOR_Y - self.rect.height
             self.velocity_y = 0
             self.jumping = False
-            return
-        
-        old_rect = self.rect.copy()
-        self.rect.x += self.velocity_x
-        # bouncing with collisions
-        #print(self.bouncing)
-        
-        
-        if collidedrect:
-            self.bounce_counter = 0
-            self.bouncing = True
-            
-            # if old_rect.right <= collidedrect
-            
-            if self.direction == "left":
-                self.velocity_x += 10
-                self.velocity_y = -10
-            elif self.direction == "right":
-                self.velocity_x -= 10
-                self.velocity_y = -10
-            elif self.direction == "none":
-                self.velocity_y = -10
-                pass
-   
-        elif self.rect.y + self.rect.height >= FLOOR_Y:
-            #print(f"second: {self.rect.y + self.rect.height >= FLOOR_Y}")
-            self.bouncing = False
-            # if self.jumping:
-            #     self.velocity_y = -10
-            # else:
-            #     self.velocity_y = 10
-        
-        #print(self.velocity_x)
-        #print(self.velocity_y)
             
 
 
