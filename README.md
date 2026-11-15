@@ -1,2 +1,2 @@
-Main code is in the branch větev
+Main code is in the branch vetev
 itch.io: 
