@@ -28,8 +28,14 @@ async def main():
     on_box = False 
 
     # PLAYER SETTINGS
-
-    player_img = pygame.image.load('pepstein_lopta.png')
+    def load_image(path):
+        try:
+            return pygame.image.load(path).convert_alpha()
+        except pygame.error as e:
+            print("Nelze načíst:", path, e)
+            raise
+    
+    player_img = load_image('pepstein_lopta.png')
     player_img = pygame.transform.scale(player_img, (85, 85))
     player_rect = player_img.get_rect()
     player_rect.x = 20
@@ -37,9 +43,9 @@ async def main():
 
     # OBJECTS SETTINGS
 
-    triangle_img = pygame.image.load('trojuhelnik.png')
-    square_img = pygame.image.load('ctverec.png')
-    rectangle_img = pygame.image.load('obdelnik.png')
+    triangle_img = load_image('trojuhelnik.png')
+    square_img = load_image('ctverec.png')
+    rectangle_img = load_image('obdelnik.png')
 
     triangle_img = pygame.transform.scale(triangle_img, (105, 105))
     square_img = pygame.transform.scale(square_img, (170, 170))
@@ -100,26 +106,30 @@ async def main():
 
         if player_rect.colliderect(leftwall):
             player_rect.left = leftwall.right
-            walking = True
+            #walking = True
             facing_right = True
 
 
         if player_rect.colliderect(rightwall):
             player_rect.right = rightwall.left
-            walking = False
+            #walking = False
             facing_right = False   
        
         # PROMENE 
 
-        if walking:
-            player_rect.x += 7    
+        # if walking:
+        #     player_rect.x += 7    
 
-        if not walking:
-            player_rect.x -= 7
+        # if not walking:
+        #     player_rect.x -= 7
 
+    
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             jumping = True
+            
+        if keys[pygame.K_a]:
+            player_rect.x =+ 7
 
         if  jumping:
             player_rect.y -= Y_VELOCITY
@@ -135,6 +145,7 @@ async def main():
 
         pygame.display.flip()
         pygame.display.update
+        await asyncio.sleep(0)
 
                  # na desktopu žádná smyčka neběží
 asyncio.run(main())
