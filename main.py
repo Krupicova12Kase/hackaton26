@@ -10,6 +10,7 @@ GRAVITY = 0.2
 FRICTION = 0.1
 FLOOR_Y = SCREEN_HEIGHT - 10
 
+
 class Button():
     def __init__(self, x, y, image, scale):
         width = image.get_width()
@@ -35,14 +36,12 @@ class Button():
 
         return action
 
-       
+
 async def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     running = True
-    
-
 
     # DEFAULT SETTINGS
     x = 0
@@ -53,15 +52,15 @@ async def main():
     velocity_y = 0
     velocity_x = 7
     jumping = False
-    walking = True 
+    walking = True
     facing_right = True
-    
+
     def check_collisions(collist) -> pygame.Rect | None:
         for rect in collist:
             if player.rect.colliderect(rect):
                 return rect
         return None
-    
+
     class Player():
         def __init__(self, image_path: str, default_pos: tuple[int, int] = (100, 100)):
             self.img = pygame.transform.scale(pygame.image.load(image_path).convert_alpha(), (90, 90))
@@ -75,7 +74,7 @@ async def main():
             self.direction = "none"
             self.old_rect = None
             self.hitboxlist = rects_list_overworld1
-            
+
         def controller(self):
             keys = pygame.key.get_pressed()
 
@@ -99,8 +98,6 @@ async def main():
 
             self.move()
             self.draw()
-
-
 
         def move(self):
             if not self.bouncing:
@@ -155,7 +152,7 @@ async def main():
                     self.velocity_y = -abs(old_vel_y)
                     # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
                     self.velocity_x = abs(old_vel_x) if self.direction == "right" else -abs(old_vel_x)
-                    
+
                 # From bottom
                 elif old_rect.top >= collidedrect.bottom:
                     self.rect.top = collidedrect.bottom
@@ -176,9 +173,8 @@ async def main():
 
         def draw(self):
             screen.blit(self.img, self.rect)
-        
 
-    # GAME VARIABLES 
+    # GAME VARIABLES
 
     game_paused = False
 
@@ -186,11 +182,10 @@ async def main():
         if resume_button.draw(screen):
             game_paused = False
 
-
     # LOAD BUTTONS
 
     quit_img = pygame.image.load('button_quit.png').convert_alpha()
-    quit_button =  Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
+    quit_button = Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
     resume_img = pygame.image.load('button_resume.png').convert_alpha()
     resume_button = Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
 
@@ -200,7 +195,7 @@ async def main():
 
     TEXT_COL = (255, 255, 255)
 
-    def draw_text(text, font, text_col, x ,y):
+    def draw_text(text, font, text_col, x, y):
         img = font.render(text, True, text_col)
         screen.blit(img, (x, y))
 
@@ -232,19 +227,17 @@ async def main():
     portal_rect6.x = 250
     portal_rect6.y = 190
 
-
     font_title = pygame.font.SysFont(None, 64)
     font_button = pygame.font.SysFont(None, 36)
 
-    # TLACITKA 
-
+    # TLACITKA
 
     # GAME STATE
 
     GAME_STATE_MENU = "menu"
     GAME_STATE_PLAYING = "playing"
     current_state = GAME_STATE_MENU
-    
+
     # BACKGROUNDS
 
     over_img = pygame.image.load('Overworld/background.png')
@@ -286,7 +279,7 @@ async def main():
     obsidian_rect2.x = 1050
     obsidian_rect2.y = 290
 
-    # END OBJECT V2 
+    # END OBJECT V2
 
     obsidian_rect3 = obsidian_img.get_rect()
     obsidian_rect4 = obsidian_img.get_rect()
@@ -322,7 +315,7 @@ async def main():
     soulsand_rect2.x = 900
     soulsand_rect2.y = 400
     netherbrick_rect2.x = 1180
-    netherbrick_rect2.y =  290
+    netherbrick_rect2.y = 290
 
     # NETHER OBJECTS V2
 
@@ -338,16 +331,16 @@ async def main():
     soulsand_rect4.x = 550
     soulsand_rect4.y = 400
     netherbrick_rect4.x = 250
-    netherbrick_rect4.y =  290
+    netherbrick_rect4.y = 290
 
     # OVERWORLD OBJECTS
 
     grassblock_img = pygame.image.load('Overworld/wall2.png')
     diamond_img = pygame.image.load('Overworld/wall1.png')
-    #flag_img = pygame.image.load('pepstein_flag.png')
+    # flag_img = pygame.image.load('pepstein_flag.png')
 
-    grassblock_img = pygame.transform.scale(grassblock_img, (100,100))
-    diamond_img = pygame.transform.scale(diamond_img, (100,100))
+    grassblock_img = pygame.transform.scale(grassblock_img, (100, 100))
+    diamond_img = pygame.transform.scale(diamond_img, (100, 100))
 
     grassblock_rect = grassblock_img.get_rect()
     grassblock_rect2 = grassblock_img.get_rect()
@@ -362,7 +355,7 @@ async def main():
     grassblock_rect2.y = 400
     diamond_rect2.x = 1180
     diamond_rect2.y = 290
-    
+
     # OVERWORLD V2
     grassblock_rect3 = grassblock_img.get_rect()
     grassblock_rect4 = grassblock_img.get_rect()
@@ -378,7 +371,7 @@ async def main():
     diamond_rect4.x = 250
     diamond_rect4.y = 290
 
-    # PLAYERS 
+    # PLAYERS
 
     ovrplayer_img = pygame.image.load('Overworld/player.png')
     netherplayer_img = pygame.image.load('Nether/player.png')
@@ -395,37 +388,35 @@ async def main():
 
     # !!!!!!!!!!!!!!!! LIST S OBJEKTY  |||PEPSTEIN|||  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    rects_list_overworld1 = [grassblock_rect, 
-                  grassblock_rect2,
-                  diamond_rect,
-                  diamond_rect2]
+    rects_list_overworld1 = [grassblock_rect,
+                             grassblock_rect2,
+                             diamond_rect,
+                             diamond_rect2]
 
     rects_list_overworld2 = [grassblock_rect3, grassblock_rect4, diamond_rect3,
-                  diamond_rect4]
-                  
+                             diamond_rect4]
 
     rects_list_nether1 = [soulsand_rect,
-                  soulsand_rect2, 
-                  netherbrick_rect,
-                  netherbrick_rect2]
-
+                          soulsand_rect2,
+                          netherbrick_rect,
+                          netherbrick_rect2]
 
     rects_list_nether2 = [soulsand_rect3,
-                        soulsand_rect4,
-                        netherbrick_rect3,
-                        netherbrick_rect4]
+                          soulsand_rect4,
+                          netherbrick_rect3,
+                          netherbrick_rect4]
 
     rects_list_end1 = [endstone_rect,
-                      endstone_rect2,
-                      obsidian_rect,
-                    obsidian_rect2]
+                       endstone_rect2,
+                       obsidian_rect,
+                       obsidian_rect2]
 
     rects_list_end2 = [
-                  endstone_rect3,
-                  endstone_rect4,
-                  obsidian_rect3,
-                  obsidian_rect4]
-                  
+        endstone_rect3,
+        endstone_rect4,
+        obsidian_rect3,
+        obsidian_rect4]
+
     player = Player(
         image_path='Overworld/player.png',
         default_pos=(20, 680)
@@ -445,23 +436,22 @@ async def main():
         # pygame.draw.rect(screen, (255, 0, 0), player_rect, 2 )
 
         # OBJEKTY NA PARKOUR
-        #screen.blit(triangle_img, triangle_rect)
+        # screen.blit(triangle_img, triangle_rect)
 
         # KOLIZE S OBJEKTY NA PARKOUR
 
-        #if player_rect.colliderect(triangle_rect) and facing_right == True:
-            #player_rect.x -= 150
+        # if player_rect.colliderect(triangle_rect) and facing_right == True:
+        # player_rect.x -= 150
 
-        #if player_rect.colliderect(triangle_rect) and not facing_right:
-            #player_rect.x += 150
-
+        # if player_rect.colliderect(triangle_rect) and not facing_right:
+        # player_rect.x += 150
 
         # OBJEKTY
 
-        ground_rect = pygame.Rect(0, 710, 1280 , 15 )
+        ground_rect = pygame.Rect(0, 710, 1280, 15)
         pygame.draw.rect(screen, ("black"), ground_rect)
 
-        top_rect = pygame.Rect(0, 0 , 1280, 10)
+        top_rect = pygame.Rect(0, 0, 1280, 10)
         pygame.draw.rect(screen, ("black"), top_rect)
 
         leftwall = pygame.Rect(0, 0, 10, 720)
@@ -482,28 +472,25 @@ async def main():
         #     player_rect.left = leftwall.right
         #     velocity_x = 7
 
-
         # if player_rect.colliderect(rightwall):
         #     player_rect.right = rightwall.left
         #     velocity_x = -7
-            
-        # # PROMENE 
+
+        # # PROMENE
 
         # player_rect.x += velocity_x
         # player_rect.y += velocity_y
         # if walking:
-        #     player_rect.x += 7    
+        #     player_rect.x += 7
         #     facing_right = True
 
         # if not walking:
         #     player_rect.x -= 7
-        #     facing_right = False 
+        #     facing_right = False
 
         # keys = pygame.key.get_pressed()
         # if keys[pygame.K_SPACE]:
         #     jumping = True
-
-
 
         # if  jumping:
         #     velocity_y = 7
@@ -511,10 +498,10 @@ async def main():
         #     if player_rect.colliderect(ground_rect):
         #         player_rect.y -= 100 *dt
         #         jumping = False
-        #         velocity_y = JUMP_HEIGHT 
+        #         velocity_y = JUMP_HEIGHT
         #     # if Y_VELOCITY < -JUMP_HEIGHT:
         #     #     jumping = False
-        #     #     Y_VELOCITY = JUMP_HEIGHT 
+        #     #     Y_VELOCITY = JUMP_HEIGHT
 
         # DIFFERNT WORLDS
 
@@ -556,7 +543,6 @@ async def main():
             screen.blit(portal_img2, portal_rect6)
         elif current_bg == finalend_img:
             draw_text("Congratulations, you finished the game!!", font, TEXT_COL, 250, SCREEN_HEIGHT // 2)
-           
 
         # OFFICIAL BG AND ASSETS SWITCHES
         if current_bg == over_img:
@@ -582,19 +568,15 @@ async def main():
                 player.img = pygame.transform.scale(endplayer_img, (90, 90))
                 player.hitboxlist = rects_list_end1
 
-
         if current_bg == end_img:
             if player.rect.colliderect(portal_rect5):
                 current_bg = end_img2
                 player.hitboxlist = rects_list_end2
-                
+
         if current_bg == end_img2:
             if player.rect.colliderect(portal_rect6):
                 current_bg = finalend_img
                 pass
-        
-
-        
 
         # BG SWICH TEST
 
@@ -612,8 +594,7 @@ async def main():
         #     current_player = ovrplayer_img
         player.controller()
 
-
-         # MAIN MENU BULLSHIT
+        # MAIN MENU BULLSHIT
 
         if game_paused == True:
             draw_text("Welcome to Fortress of Bioms", font, (0, 0, 0), x=300, y=100)
@@ -624,11 +605,11 @@ async def main():
             if quit_button.draw(screen):
                 running = False
 
-        clock.tick(60) # Frames per Scond
+        clock.tick(60)  # Frames per Scond
 
         pygame.display.flip()
         pygame.display.update()
         await asyncio.sleep(0)
     pygame.quit()
-    
+
 asyncio.run(main())
