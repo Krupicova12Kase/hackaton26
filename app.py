@@ -12,7 +12,7 @@ dt = 0
 VELOCITY_Y = -10
 VELOCITY_X = 5
 GRAVITY = 0.4
-FRICTION = 0.3
+FRICTION = 0.1
 FLOOR_Y = screen.height - 10
 
 rects = []
@@ -40,27 +40,28 @@ class Player():
     def controller(self):
         keys = pygame.key.get_pressed()
 
-        # Skok
-        if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not self.jumping:
+        # Jump
+        if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not self.jumping and not self.bouncing:
             self.velocity_y = VELOCITY_Y
             self.jumping = True
 
-        # Pohyb do stran (jen když nevyprší časovač odrazu)
+        # Sides
         if self.bounce_timer <= 0:
             if keys[pygame.K_a]:
-                self.velocity_x = -VELOCITY_X
+                self.velocity_x = -VELOCITY_X if not self.bouncing else self.velocity_x - 0.4
                 self.direction = "left"
             elif keys[pygame.K_d]:
-                self.velocity_x = VELOCITY_X
+                self.velocity_x = VELOCITY_X if not self.bouncing else self.velocity_x + 0.4
                 self.direction = "right"
+            if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
+                self.direction = "none"
         else:
             self.bounce_timer -= 1
 
         self.move()
         self.draw()
 
-        # if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
-        #     self.direction = "none"
+
 
     def move(self):
         if not self.bouncing:
@@ -85,7 +86,7 @@ class Player():
 
         # X
         if collidedrect:
-            self.bounce_timer = 15
+            self.bounce_timer = 5
             self.bouncing = True
             if old_rect.right <= collidedrect.left:
                 self.rect.right = collidedrect.left
