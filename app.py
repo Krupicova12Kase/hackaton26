@@ -1,4 +1,6 @@
 # Example file showing a circle moving on screen
+import os
+
 import pygame
 
 # pygame setup
@@ -13,9 +15,7 @@ GRAVITY = 0.4
 FRICTION = 0.3
 FLOOR_Y = screen.height - 10
 
-player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 rects = []
-
 
 def check_collisions() -> pygame.Rect | None:
     for rect in rects:
@@ -25,11 +25,10 @@ def check_collisions() -> pygame.Rect | None:
 
 
 class Player():
-    def __init__(self, x, y):
-        self.img = pygame.transform.scale(load_image('pepstein_lopta.png'), (85, 85))
+    def __init__(self, image_path: str, default_pos: tuple[int, int] = (100, 100)):
+        self.img = pygame.transform.scale(pygame.image.load(image_path).convert_alpha(), (85, 85))
         self.rect = self.img.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x, self.rect.y = default_pos
         self.velocity_x = 0
         self.velocity_y = 0
         self.jumping = False
@@ -59,7 +58,7 @@ class Player():
 
         self.move()
         self.draw()
-        
+
         # if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
         #     self.direction = "none"
 
@@ -78,47 +77,51 @@ class Player():
             self.rect.x = screen.width - self.rect.width
 
         old_rect = self.rect.copy()
+        old_vel_x = self.velocity_x
+        old_vel_y = self.velocity_y
         self.rect.x += self.velocity_x
-        
+
         collidedrect = check_collisions()
 
-        # bouncing with collisions
+        # X
         if collidedrect:
-                self.bounce_timer = 15
-                self.bouncing = True
-                if old_rect.right <= collidedrect.left:      # Narazil zleva
-                    self.rect.right = collidedrect.left      # Vytlačit ven z objektu!
-                    self.velocity_x = -20
-                    self.velocity_y = -10                    # Lehké nadhození při nárazu z boku
-                elif old_rect.left >= collidedrect.right:    # Narazil zprava
-                    self.rect.left = collidedrect.right      # Vytlačit ven z objektu!
-                    self.velocity_x = 20
-                    self.velocity_y = -10
-                    
-         # jumping
+            self.bounce_timer = 15
+            self.bouncing = True
+            if old_rect.right <= collidedrect.left:
+                self.rect.right = collidedrect.left
+                self.velocity_x = -20
+                self.velocity_y = -10
+            elif old_rect.left >= collidedrect.right:
+                self.rect.left = collidedrect.right
+                self.velocity_x = 20
+                self.velocity_y = -10
+
+        # Y
         self.velocity_y += GRAVITY
         old_rect = self.rect.copy()
-        self.rect.y += self.velocity_y # NA JAKYMKOLIV JINYM RADKU SE TO GLITCHUJE, NEPRESOUVAT!!!
-        
+        self.rect.y += self.velocity_y
+
         collidedrect = check_collisions()
-        
+
         if collidedrect:
             self.bouncing = True
-            if old_rect.bottom <= collidedrect.top:      # Dopadl na překážku shora
+            # From top
+            if old_rect.bottom <= collidedrect.top:
                 self.rect.bottom = collidedrect.top
-                self.velocity_y = -15                    # Vystřelit nahoru
+                self.velocity_y = -15
                 # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
                 self.velocity_x = 15 if self.direction == "right" else -15
-            elif old_rect.top >= collidedrect.bottom:    # Narazil hlavou zespodu
+                
+            # From bottom
+            elif old_rect.top >= collidedrect.bottom:
                 self.rect.top = collidedrect.bottom
-                self.velocity_y = 10                     # Odrazit dolů
-                
-                
+                self.velocity_y = 10
+
             if old_rect.top <= collidedrect.top:
                 self.velocity_y = -10
             elif old_rect.bottom <= collidedrect.bottom:
                 self.velocity_y = +10
-   
+
         elif self.rect.y + self.rect.height >= FLOOR_Y:
             self.bouncing = False
 
@@ -126,8 +129,6 @@ class Player():
             self.rect.y = FLOOR_Y - self.rect.height
             self.velocity_y = 0
             self.jumping = False
-            
-
 
     def draw(self):
         screen.blit(self.img, self.rect)
@@ -149,7 +150,11 @@ square_rect.x = 500
 square_rect.y = 650
 rects.append(square_rect)
 
-player = Player(500, 200)
+os.path.pardir
+
+image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pepstein_lopta.png")
+player = Player(image_path, (500, 200))
+
 while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
