@@ -41,9 +41,9 @@ def main():
     # LOAD BUTTONS
 
     quit_img = pygame.image.load('button_quit.png').convert_alpha()
-    quit_button =  button.Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
+    quit_button =  button.Button(500, 300, quit_img, 1)
     resume_img = pygame.image.load('button_resume.png').convert_alpha()
-    resume_button = button.Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
+    resume_button = button.Button(500, 200, resume_img, 1)
 
     # FONTY
 
@@ -111,6 +111,7 @@ def main():
     nether_img2 = pygame.transform.scale(nether_img2, (1280, 720))
     end_img = pygame.transform.scale(end_img, (1280, 720))
     end_img2 = pygame.transform.scale(end_img2, (1280, 720))
+    finalend_img = pygame.transform.scale(end_img, (1280, 720))
 
     current_bg = over_img
 
@@ -198,13 +199,11 @@ def main():
 
     grassblock_img = pygame.transform.scale(grassblock_img, (100,100))
     diamond_img = pygame.transform.scale(diamond_img, (100,100))
-    #flag_img = pygame.transform.scale(flag_img, (220,300))
 
     grassblock_rect = grassblock_img.get_rect()
     grassblock_rect2 = grassblock_img.get_rect()
     diamond_rect = diamond_img.get_rect()
     diamond_rect2 = diamond_img.get_rect()
-    #flag_rect = flag_img.get_rect()
 
     grassblock_rect.x = 400
     grassblock_rect.y = 620
@@ -220,7 +219,6 @@ def main():
     grassblock_rect4 = grassblock_img.get_rect()
     diamond_rect3 = diamond_img.get_rect()
     diamond_rect4 = diamond_img.get_rect()
-    #flag_rect = flag_img.get_rect()
 
     grassblock_rect3.x = 1150
     grassblock_rect3.y = 620
@@ -248,23 +246,36 @@ def main():
 
     # !!!!!!!!!!!!!!!! LIST S OBJEKTY  |||PEPSTEIN|||  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    rects_list = [grassblock_rect, 
+    rects_list_overworld1 = [grassblock_rect, 
                   grassblock_rect2,
-                  grassblock_rect3,
-                  grassblock_rect4,
                   diamond_rect,
-                  diamond_rect2,
-                  diamond_rect3,
-                  diamond_rect4,
-                  soulsand_rect,
-                  soulsand_rect2,
-                  soulsand_rect3,
-                  soulsand_rect4,
+                  diamond_rect2]
+
+    rects_list_overworld2 = [grassblock_rect3, grassblock_rect4, diamond_rect3,
+                  diamond_rect4]
+                  
+
+    rects_list_nether1 = [soulsand_rect,
+                  soulsand_rect2, 
                   netherbrick_rect,
-                  netherbrick_rect2,
-                  netherbrick_rect3,
-                  netherbrick_rect4,
-                  endstone_rect]
+                  netherbrick_rect2]
+
+
+    rects_list_nether2 = [soulsand_rect3,
+                        soulsand_rect4,
+                        netherbrick_rect3,
+                        netherbrick_rect4]
+
+    rects_list_end1 = [endstone_rect,
+                      endstone_rect2,
+                      obsidian_rect,
+                    obsidian_rect2]
+
+    rects_list_end2 = [
+                  endstone_rect3,
+                  endstone_rect4,
+                  obsidian_rect3,
+                  obsidian_rect4]
                   
 
 
@@ -392,6 +403,8 @@ def main():
             screen.blit(endstone_img, endstone_rect4)
             screen.blit(obsidian_img, obsidian_rect4)
             screen.blit(portal_img2, portal_rect6)
+        elif current_bg == finalend_img:
+            draw_text("Congratulations, you finished the game!!", font, TEXT_COL, 250, SCREEN_HEIGHT // 2)
            
 
         # OFFICIAL BG AND ASSETS SWITCHES
@@ -402,7 +415,7 @@ def main():
         if current_bg == over_img2:
             if player_rect.colliderect(portal_rect2):
                 current_bg == nether_img
-                current_player == netherplayyer_img
+                current_player == netherplayer_img
 
         if current_bg == nether_img:
             if player_rect.colliderect(portal_rect3):
@@ -419,9 +432,9 @@ def main():
 
         if current_bg == end_img2:
             if player_rect.colliderect(portal_rect6):
-                pass
-        
+                current_bg == finalend_img
 
+        
 
         # BG SWICH TEST
 
@@ -435,13 +448,14 @@ def main():
             current_bg = over_img
             current_player = ovrplayer_img
         if keys[pygame.K_u]:
-            current_bg = over_img2
-            current_player = ovrplayer_img
+            current_bg = finalend_img
+            current_player = endplayer_img
 
 
          # MAIN MENU BULLSHIT
 
         if game_paused == True:
+            draw_text("Welcome to Fortress of Bioms", font, (0, 0, 0), x=300, y=100)
             velocity_x = 0
             if resume_button.draw(screen):
                 game_paused = False
