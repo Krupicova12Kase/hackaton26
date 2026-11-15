@@ -1,15 +1,44 @@
 import pygame
-import time
-import platform
 import asyncio
-import sys 
-import button
-from button import Button
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
+VELOCITY_Y = -10
+VELOCITY_X = 5
+GRAVITY = 0.4
+FRICTION = 0.1
+FLOOR_Y = SCREEN_HEIGHT - 10
 
-def main():
+
+
+
+class Button():
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.clicked = False
+
+    def draw(self, surface):
+        action = False
+        pos = pygame.mouse.get_pos()
+
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                action = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
+        return action
+
+       
+async def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
@@ -28,6 +57,128 @@ def main():
     jumping = False
     walking = True 
     facing_right = True
+    
+    def check_collisions() -> pygame.Rect | None:
+        for rect in rects_list:
+            if player.rect.colliderect(rect):
+                return rect
+        return None
+    
+    class Player():
+        def __init__(self, image_path: str, default_pos: tuple[int, int] = (100, 100)):
+            self.img = pygame.transform.scale(pygame.image.load(image_path).convert_alpha(), (90, 90))
+            self.rect = self.img.get_rect()
+            self.rect.x, self.rect.y = default_pos
+            self.velocity_x = 0
+            self.velocity_y = 0
+            self.jumping = False
+            self.bouncing = False
+            self.bounce_timer = 0
+            self.direction = "none"
+            self.old_rect = None
+
+        def controller(self):
+            keys = pygame.key.get_pressed()
+
+            # Jump
+            if (keys[pygame.K_w] or keys[pygame.K_SPACE]) and not self.jumping and not self.bouncing:
+                self.velocity_y = VELOCITY_Y
+                self.jumping = True
+
+            # Sides
+            if self.bounce_timer <= 0:
+                if keys[pygame.K_a]:
+                    self.velocity_x = -VELOCITY_X if not self.bouncing else -VELOCITY_X / 2.5
+                    self.direction = "left"
+                elif keys[pygame.K_d]:
+                    self.velocity_x = VELOCITY_X if not self.bouncing else VELOCITY_X / 2.5
+                    self.direction = "right"
+                if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
+                    self.direction = "none"
+            else:
+                self.bounce_timer -= 1
+
+            self.move()
+            self.draw()
+
+
+
+        def move(self):
+            if not self.bouncing:
+                if self.direction == "left" and self.velocity_x < 0:
+                    self.velocity_x += FRICTION
+                elif self.direction == "right" and self.velocity_x > 0:
+                    self.velocity_x -= FRICTION
+                else:
+                    self.velocity_x = 0
+
+            if self.rect.x < 0:
+                self.rect.x = 0
+            elif self.rect.x + self.rect.width > SCREEN_WIDTH:
+                self.rect.x = SCREEN_WIDTH - self.rect.width
+
+            old_rect = self.rect.copy()
+            old_vel_x = self.velocity_x
+            old_vel_y = self.velocity_y
+            self.rect.x += self.velocity_x
+
+            collidedrect = check_collisions()
+            print(collidedrect)
+
+            # X
+            if collidedrect:
+                self.bounce_timer = 5
+                self.bouncing = True
+                # From right
+                if old_rect.right <= collidedrect.left:
+                    self.rect.right = collidedrect.left
+                    self.velocity_x = -abs(old_vel_x)
+                    self.velocity_y = -abs(old_vel_y)
+                # From left
+                elif old_rect.left >= collidedrect.right:
+                    self.rect.left = collidedrect.right
+                    self.velocity_x = abs(old_vel_x)
+                    self.velocity_y = -abs(old_vel_y)
+
+            # Y
+            self.velocity_y += GRAVITY
+            old_vel_x = self.velocity_x
+            old_vel_y = self.velocity_y
+            old_rect = self.rect.copy()
+            self.rect.y += self.velocity_y
+
+            collidedrect = check_collisions()
+
+            if collidedrect:
+                self.bouncing = True
+                # From top
+                if old_rect.bottom <= collidedrect.top:
+                    self.rect.bottom = collidedrect.top
+                    self.velocity_y = -abs(old_vel_y)
+                    # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
+                    self.velocity_x = abs(old_vel_x) if self.direction == "right" else -abs(old_vel_x)
+                    
+                # From bottom
+                elif old_rect.top >= collidedrect.bottom:
+                    self.rect.top = collidedrect.bottom
+                    self.velocity_y = abs(old_vel_y)
+
+                if old_rect.top <= collidedrect.top:
+                    self.velocity_y = -abs(old_vel_y)
+                elif old_rect.bottom <= collidedrect.bottom:
+                    self.velocity_y = abs(old_vel_y)
+
+            elif self.rect.y + self.rect.height >= FLOOR_Y:
+                self.bouncing = False
+
+            if self.rect.y + self.rect.height > FLOOR_Y:
+                self.rect.y = FLOOR_Y - self.rect.height
+                self.velocity_y = 0
+                self.jumping = False
+
+        def draw(self):
+            screen.blit(self.img, self.rect)
+        
 
     # GAME VARIABLES 
 
@@ -41,9 +192,9 @@ def main():
     # LOAD BUTTONS
 
     quit_img = pygame.image.load('button_quit.png').convert_alpha()
-    quit_button =  button.Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
+    quit_button =  Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
     resume_img = pygame.image.load('button_resume.png').convert_alpha()
-    resume_button = button.Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
+    resume_button = Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
 
     # FONTY
 
@@ -237,14 +388,14 @@ def main():
     netherplayer_img = pygame.image.load('Nether/player.png')
     endplayer_img = pygame.image.load('End/player.png')
 
-    current_player = ovrplayer_img
-    current_player = pygame.transform.scale(current_player, (90, 90))
+    # current_player = ovrplayer_img
+    # current_player = pygame.transform.scale(current_player, (90, 90))
 
     # PLAYER SETTINGS
 
-    player_rect = current_player.get_rect()
-    player_rect.x = 20
-    player_rect.y = 680
+    # player_rect = current_player.get_rect()
+    # player_rect.x = 20
+    # player_rect.y = 680
 
     # !!!!!!!!!!!!!!!! LIST S OBJEKTY  |||PEPSTEIN|||  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -266,7 +417,10 @@ def main():
                   netherbrick_rect4,
                   endstone_rect]
                   
-
+    player = Player(
+        image_path='Overworld/player.png',
+        default_pos=(20, 680)
+    )
 
     while running:
         for event in pygame.event.get():
@@ -277,10 +431,11 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-
+        print(player.rect.x)
+        print(player.rect.y)
         screen.blit(current_bg, (0, 0))
-        screen.blit(current_player, player_rect)
-        pygame.draw.rect(screen, (255, 0, 0), player_rect, 2 )
+        # screen.blit(current_player, player_rect)
+        # pygame.draw.rect(screen, (255, 0, 0), player_rect, 2 )
 
         # OBJEKTY NA PARKOUR
         #screen.blit(triangle_img, triangle_rect)
@@ -310,25 +465,25 @@ def main():
 
         # KOLIZE
 
-        if player_rect.colliderect(top_rect):
-            player_rect.y += 100 * dt
+        # if player_rect.colliderect(top_rect):
+        #     player_rect.y += 100 * dt
 
-        if player_rect.colliderect(ground_rect):
-            player_rect.y -= 100 *dt
+        # if player_rect.colliderect(ground_rect):
+        #     player_rect.y -= 100 *dt
 
-        if player_rect.colliderect(leftwall):
-            player_rect.left = leftwall.right
-            velocity_x = 7
+        # if player_rect.colliderect(leftwall):
+        #     player_rect.left = leftwall.right
+        #     velocity_x = 7
 
 
-        if player_rect.colliderect(rightwall):
-            player_rect.right = rightwall.left
-            velocity_x = -7
+        # if player_rect.colliderect(rightwall):
+        #     player_rect.right = rightwall.left
+        #     velocity_x = -7
             
-        # PROMENE 
+        # # PROMENE 
 
-        player_rect.x += velocity_x
-        player_rect.y += velocity_y
+        # player_rect.x += velocity_x
+        # player_rect.y += velocity_y
         # if walking:
         #     player_rect.x += 7    
         #     facing_right = True
@@ -337,22 +492,22 @@ def main():
         #     player_rect.x -= 7
         #     facing_right = False 
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            jumping = True
+        # keys = pygame.key.get_pressed()
+        # if keys[pygame.K_SPACE]:
+        #     jumping = True
 
 
 
-        if  jumping:
-            velocity_y = 7
-            velocity_y -= Y_GRAVITY
-            if player_rect.colliderect(ground_rect):
-                player_rect.y -= 100 *dt
-                jumping = False
-                velocity_y = JUMP_HEIGHT 
-            # if Y_VELOCITY < -JUMP_HEIGHT:
-            #     jumping = False
-            #     Y_VELOCITY = JUMP_HEIGHT 
+        # if  jumping:
+        #     velocity_y = 7
+        #     velocity_y -= Y_GRAVITY
+        #     if player_rect.colliderect(ground_rect):
+        #         player_rect.y -= 100 *dt
+        #         jumping = False
+        #         velocity_y = JUMP_HEIGHT 
+        #     # if Y_VELOCITY < -JUMP_HEIGHT:
+        #     #     jumping = False
+        #     #     Y_VELOCITY = JUMP_HEIGHT 
 
         # DIFFERNT WORLDS
 
@@ -396,47 +551,49 @@ def main():
 
         # OFFICIAL BG AND ASSETS SWITCHES
         if current_bg == over_img:
-            if player_rect.colliderect(portal_rect):
+            if player.rect.colliderect(portal_rect):
                 current_bg == over_img2
+                player.img = ovrplayer_img
 
         if current_bg == over_img2:
-            if player_rect.colliderect(portal_rect2):
+            if player.rect.colliderect(portal_rect2):
                 current_bg == nether_img
-                current_player == netherplayyer_img
+                player.img == netherplayer_img
 
         if current_bg == nether_img:
-            if player_rect.colliderect(portal_rect3):
+            if player.rect.colliderect(portal_rect3):
                 current_bg == nether_img2
 
         if current_bg == nether_img2:
-            if player_rect.colliderect(portal_rect4):
+            if player.rect.colliderect(portal_rect4):
                 current_bg == end_img
-                current_player = endplayer_img
+                player.img = endplayer_img
 
         if current_bg == end_img:
-            if player_rect.colliderect(portal_rect5):
+            if player.rect.colliderect(portal_rect5):
                 current_bg == end_img2
 
         if current_bg == end_img2:
-            if player_rect.colliderect(portal_rect6):
+            if player.rect.colliderect(portal_rect6):
                 pass
         
 
 
         # BG SWICH TEST
 
-        if keys[pygame.K_i]:
-            current_bg = nether_img
-            current_player = netherplayer_img
-        if keys[pygame.K_o]:
-            current_bg = end_img
-            current_player = endplayer_img
-        if keys[pygame.K_p]:
-            current_bg = over_img
-            current_player = ovrplayer_img
-        if keys[pygame.K_u]:
-            current_bg = over_img2
-            current_player = ovrplayer_img
+        # if keys[pygame.K_i]:
+        #     current_bg = nether_img
+        #     current_player = netherplayer_img
+        # if keys[pygame.K_o]:
+        #     current_bg = end_img
+        #     current_player = endplayer_img
+        # if keys[pygame.K_p]:
+        #     current_bg = over_img
+        #     current_player = ovrplayer_img
+        # if keys[pygame.K_u]:
+        #     current_bg = over_img2
+        #     current_player = ovrplayer_img
+        player.controller()
 
 
          # MAIN MENU BULLSHIT
@@ -452,7 +609,10 @@ def main():
         clock.tick(60) # Frames per Scond
 
         pygame.display.flip()
-        pygame.display.update
+        pygame.display.update()
+        print("Hello, world!")
+        asyncio.sleep(0)
     pygame.quit()
-    
-main()
+
+print("Hello, world! 2")
+asyncio.run(main())
