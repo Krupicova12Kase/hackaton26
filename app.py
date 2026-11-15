@@ -48,10 +48,10 @@ class Player():
         # Sides
         if self.bounce_timer <= 0:
             if keys[pygame.K_a]:
-                self.velocity_x = -VELOCITY_X if not self.bouncing else self.velocity_x - 0.4
+                self.velocity_x = -VELOCITY_X if not self.bouncing else -VELOCITY_X / 2.5
                 self.direction = "left"
             elif keys[pygame.K_d]:
-                self.velocity_x = VELOCITY_X if not self.bouncing else self.velocity_x + 0.4
+                self.velocity_x = VELOCITY_X if not self.bouncing else VELOCITY_X / 2.5
                 self.direction = "right"
             if not keys[pygame.K_a] and not keys[pygame.K_d] and self.velocity_x == 0:
                 self.direction = "none"
@@ -88,17 +88,21 @@ class Player():
         if collidedrect:
             self.bounce_timer = 5
             self.bouncing = True
+            # From right
             if old_rect.right <= collidedrect.left:
                 self.rect.right = collidedrect.left
-                self.velocity_x = -20
-                self.velocity_y = -10
+                self.velocity_x = -abs(old_vel_x)
+                self.velocity_y = -abs(old_vel_y)
+            # From left
             elif old_rect.left >= collidedrect.right:
                 self.rect.left = collidedrect.right
-                self.velocity_x = 20
-                self.velocity_y = -10
+                self.velocity_x = abs(old_vel_x)
+                self.velocity_y = -abs(old_vel_y)
 
         # Y
         self.velocity_y += GRAVITY
+        old_vel_x = self.velocity_x
+        old_vel_y = self.velocity_y
         old_rect = self.rect.copy()
         self.rect.y += self.velocity_y
 
@@ -109,19 +113,19 @@ class Player():
             # From top
             if old_rect.bottom <= collidedrect.top:
                 self.rect.bottom = collidedrect.top
-                self.velocity_y = -15
+                self.velocity_y = -abs(old_vel_y)
                 # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
-                self.velocity_x = 15 if self.direction == "right" else -15
+                self.velocity_x = abs(old_vel_x) if self.direction == "right" else -abs(old_vel_x)
                 
             # From bottom
             elif old_rect.top >= collidedrect.bottom:
                 self.rect.top = collidedrect.bottom
-                self.velocity_y = 10
+                self.velocity_y = abs(old_vel_y)
 
             if old_rect.top <= collidedrect.top:
-                self.velocity_y = -10
+                self.velocity_y = -abs(old_vel_y)
             elif old_rect.bottom <= collidedrect.bottom:
-                self.velocity_y = +10
+                self.velocity_y = abs(old_vel_y)
 
         elif self.rect.y + self.rect.height >= FLOOR_Y:
             self.bouncing = False
@@ -150,8 +154,6 @@ square_rect = square_img.get_rect()
 square_rect.x = 500
 square_rect.y = 650
 rects.append(square_rect)
-
-os.path.pardir
 
 image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pepstein_lopta.png")
 player = Player(image_path, (500, 200))
