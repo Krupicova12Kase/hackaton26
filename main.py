@@ -3,6 +3,8 @@ import time
 import platform
 import asyncio
 import sys 
+import button
+from button import Button
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
@@ -13,22 +15,8 @@ def main():
     clock = pygame.time.Clock()
     running = True
     
-    ## SOUNDS
-    pygame.mixer.init()
-    
-    last_jump_sound = 0
-    SOUND_DELAY = 500
-    
-    jump_sound = pygame.mixer.Sound('jump.waw')
-    overworld_theme = pygame.mixer.music.load('end_theme_drama.ogg')
 
-    jump_sound.set_volume(0.5)          # hlasitost 0.0 az 1.0
-    '''
-    # hudba v pozadi
-    pygame.mixer.music.load('pisnicka hra.mp3')
-    pygame.mixer.music.set_volume(0.3)
-    pygame.mixer.music.play(-1)         # -1 = hra dokola
-    '''
+
     # DEFAULT SETTINGS
     x = 0
     y = 0
@@ -41,14 +29,66 @@ def main():
     walking = True 
     facing_right = True
 
+    # GAME VARIABLES 
+
+    game_paused = False
+
+    if game_paused == True:
+        if resume_button.draw(screen):
+            game_paused = False
+
+
+    # LOAD BUTTONS
+
+    quit_img = pygame.image.load('button_quit.png').convert_alpha()
+    quit_button =  button.Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
+    resume_img = pygame.image.load('button_resume.png').convert_alpha()
+    resume_button = button.Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
+
     # FONTY
+
+    font = pygame.font.SysFont("arialblack", 40)
+
+    TEXT_COL = (255, 255, 255)
+
+    def draw_text(text, font, text_col, x ,y):
+        img = font.render(text, True, text_col)
+        screen.blit(img, (x, y))
+
+    # PORTALS
+
+    portal_img = pygame.image.load('Portal.png')
+    portal_img2 = pygame.image.load('Portal2.png')
+
+    portal_img = pygame.transform.scale(portal_img, (110, 80))
+    portal_img2 = pygame.transform.scale(portal_img2, (110, 80))
+
+    portal_rect = portal_img.get_rect()
+    portal_rect2 = portal_img2.get_rect()
+    portal_rect3 = portal_img.get_rect()
+    portal_rect4 = portal_img2.get_rect()
+    portal_rect5 = portal_img.get_rect()
+    portal_rect6 = portal_img2.get_rect()
+
+    portal_rect.x = 1180
+    portal_rect.y = 190
+    portal_rect2.x = 250
+    portal_rect2.y = 190
+    portal_rect3.x = 1180
+    portal_rect3.y = 190
+    portal_rect4.x = 240
+    portal_rect4.y = 190
+    portal_rect5.x = 1050
+    portal_rect5.y = 190
+    portal_rect6.x = 250
+    portal_rect6.y = 190
+
 
     font_title = pygame.font.SysFont(None, 64)
     font_button = pygame.font.SysFont(None, 36)
 
     # TLACITKA 
-    quit_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, 250, 200, 50)
-    play_button = pygame.Rect(SCREEN_WIDTH // 2 - 100, 350, 200, 50 )
+
 
     # GAME STATE
 
@@ -182,14 +222,14 @@ def main():
     diamond_rect4 = diamond_img.get_rect()
     #flag_rect = flag_img.get_rect()
 
-    grassblock_rect.x = 1150
-    grassblock_rect.y = 620
-    diamond_rect.x = 850
-    diamond_rect.y = 510
-    grassblock_rect2.x = 550
-    grassblock_rect2.y = 400
-    diamond_rect2.x = 250
-    diamond_rect2.y = 290
+    grassblock_rect3.x = 1150
+    grassblock_rect3.y = 620
+    diamond_rect3.x = 850
+    diamond_rect3.y = 510
+    grassblock_rect4.x = 550
+    grassblock_rect4.y = 400
+    diamond_rect4.x = 250
+    diamond_rect4.y = 290
 
     # PLAYERS 
 
@@ -198,13 +238,13 @@ def main():
     endplayer_img = pygame.image.load('End/player.png')
 
     current_player = ovrplayer_img
-    current_player = pygame.transform.scale(current_player, (85, 85))
+    current_player = pygame.transform.scale(current_player, (90, 90))
 
     # PLAYER SETTINGS
 
     player_rect = current_player.get_rect()
     player_rect.x = 20
-    player_rect.y = 700
+    player_rect.y = 680
 
     # !!!!!!!!!!!!!!!! LIST S OBJEKTY  |||PEPSTEIN|||  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -224,11 +264,16 @@ def main():
                   netherbrick_rect2,
                   netherbrick_rect3,
                   netherbrick_rect4,
-                  ]
+                  endstone_rect]
+                  
 
 
     while running:
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_TAB:
+                    game_paused = True
+                    print("Paused")
             if event.type == pygame.QUIT:
                 running = False
 
@@ -295,12 +340,8 @@ def main():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             jumping = True
-            jump_sound.play()
-            now = pygame.time.get_ticks()
-            
-            if now - last_jump_sound > SOUND_DELAY:
-                jump_sound.play()
-                last_jump_sound = now
+
+
 
         if  jumping:
             velocity_y = 7
@@ -316,29 +357,70 @@ def main():
         # DIFFERNT WORLDS
 
         if current_bg == over_img:
-            overworld_theme.play()
             screen.blit(grassblock_img, grassblock_rect)
             screen.blit(diamond_img, diamond_rect)
             screen.blit(grassblock_img, grassblock_rect2)
             screen.blit(diamond_img, diamond_rect2)
+            screen.blit(portal_img, portal_rect)
         elif current_bg == over_img2:
-            pass
+            screen.blit(grassblock_img, grassblock_rect3)
+            screen.blit(diamond_img, diamond_rect3)
+            screen.blit(grassblock_img, grassblock_rect4)
+            screen.blit(diamond_img, diamond_rect4)
+            screen.blit(portal_img2, portal_rect2)
         elif current_bg == nether_img:
             screen.blit(soulsand_img, soulsand_rect)
             screen.blit(netherbrick_img, netherbrick_rect)
             screen.blit(soulsand_img, soulsand_rect2)
             screen.blit(netherbrick_img, netherbrick_rect2)
+            screen.blit(portal_img, portal_rect3)
         elif current_bg == nether_img2:
-            pass
+            screen.blit(soulsand_img, soulsand_rect3)
+            screen.blit(netherbrick_img, netherbrick_rect3)
+            screen.blit(soulsand_img, soulsand_rect4)
+            screen.blit(netherbrick_img, netherbrick_rect4)
+            screen.blit(portal_img2, portal_rect4)
         elif current_bg == end_img:
             screen.blit(obsidian_img, obsidian_rect)
             screen.blit(endstone_img, endstone_rect)
             screen.blit(endstone_img, endstone_rect2)
             screen.blit(obsidian_img, obsidian_rect2)
+            screen.blit(portal_img, portal_rect5)
         elif current_bg == end_img2:
-            pass    
+            screen.blit(obsidian_img, obsidian_rect3)
+            screen.blit(endstone_img, endstone_rect3)
+            screen.blit(endstone_img, endstone_rect4)
+            screen.blit(obsidian_img, obsidian_rect4)
+            screen.blit(portal_img2, portal_rect6)
            
 
+        # OFFICIAL BG AND ASSETS SWITCHES
+        if current_bg == over_img:
+            if player_rect.colliderect(portal_rect):
+                current_bg == over_img2
+
+        if current_bg == over_img2:
+            if player_rect.colliderect(portal_rect2):
+                current_bg == nether_img
+                current_player == netherplayyer_img
+
+        if current_bg == nether_img:
+            if player_rect.colliderect(portal_rect3):
+                current_bg == nether_img2
+
+        if current_bg == nether_img2:
+            if player_rect.colliderect(portal_rect4):
+                current_bg == end_img
+                current_player = endplayer_img
+
+        if current_bg == end_img:
+            if player_rect.colliderect(portal_rect5):
+                current_bg == end_img2
+
+        if current_bg == end_img2:
+            if player_rect.colliderect(portal_rect6):
+                pass
+        
 
 
         # BG SWICH TEST
@@ -352,7 +434,20 @@ def main():
         if keys[pygame.K_p]:
             current_bg = over_img
             current_player = ovrplayer_img
+        if keys[pygame.K_u]:
+            current_bg = over_img2
+            current_player = ovrplayer_img
 
+
+         # MAIN MENU BULLSHIT
+
+        if game_paused == True:
+            velocity_x = 0
+            if resume_button.draw(screen):
+                game_paused = False
+                velocity_x += 7
+            if quit_button.draw(screen):
+                running = False
 
         clock.tick(60) # Frames per Scond
 
