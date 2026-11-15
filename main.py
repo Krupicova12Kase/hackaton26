@@ -5,7 +5,7 @@ SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 VELOCITY_Y = -10
 VELOCITY_X = 5
-GRAVITY = 0.4
+GRAVITY = 0.2
 FRICTION = 0.1
 FLOOR_Y = SCREEN_HEIGHT - 10
 
@@ -58,8 +58,8 @@ async def main():
     walking = True 
     facing_right = True
     
-    def check_collisions() -> pygame.Rect | None:
-        for rect in rects_list_overworld1:
+    def check_collisions(collist) -> pygame.Rect | None:
+        for rect in collist:
             if player.rect.colliderect(rect):
                 return rect
         return None
@@ -76,7 +76,8 @@ async def main():
             self.bounce_timer = 0
             self.direction = "none"
             self.old_rect = None
-
+            self.hitboxlist = rects_list_overworld1
+            
         def controller(self):
             keys = pygame.key.get_pressed()
 
@@ -122,8 +123,7 @@ async def main():
             old_vel_y = self.velocity_y
             self.rect.x += self.velocity_x
 
-            collidedrect = check_collisions()
-            print(collidedrect)
+            collidedrect = check_collisions(self.hitboxlist)
 
             # X
             if collidedrect:
@@ -147,7 +147,7 @@ async def main():
             old_rect = self.rect.copy()
             self.rect.y += self.velocity_y
 
-            collidedrect = check_collisions()
+            collidedrect = check_collisions(self.hitboxlist)
 
             if collidedrect:
                 self.bouncing = True
@@ -191,9 +191,9 @@ async def main():
 
     # LOAD BUTTONS
 
-    quit_img = pygame.image.load('button_quit.png').convert_alpha()
+    quit_img = pygame.image.load('button_quit.jpg').convert_alpha()
     quit_button =  Button(SCREEN_WIDTH // 2, 300, quit_img, 1)
-    resume_img = pygame.image.load('button_resume.png').convert_alpha()
+    resume_img = pygame.image.load('button_resume.jpg').convert_alpha()
     resume_button = Button(SCREEN_WIDTH // 2, 200, resume_img, 1)
 
     # FONTY
@@ -208,8 +208,8 @@ async def main():
 
     # PORTALS
 
-    portal_img = pygame.image.load('Portal.png')
-    portal_img2 = pygame.image.load('Portal2.png')
+    portal_img = pygame.image.load('Portal.jpg')
+    portal_img2 = pygame.image.load('Portal2.jpg')
 
     portal_img = pygame.transform.scale(portal_img, (110, 80))
     portal_img2 = pygame.transform.scale(portal_img2, (110, 80))
@@ -249,12 +249,12 @@ async def main():
     
     # BACKGROUNDS
 
-    over_img = pygame.image.load('Overworld/background.png')
-    over_img2 = pygame.image.load('Overworld/background.png')
-    nether_img = pygame.image.load('Nether/background.png')
-    nether_img2 = pygame.image.load('Nether/background.png')
-    end_img = pygame.image.load('End/background.png')
-    end_img2 = pygame.image.load('End/background.png')
+    over_img = pygame.image.load('Overworld/background.jpg')
+    over_img2 = pygame.image.load('Overworld/background.jpg')
+    nether_img = pygame.image.load('Nether/background.jpg')
+    nether_img2 = pygame.image.load('Nether/background.jpg')
+    end_img = pygame.image.load('End/background.jpg')
+    end_img2 = pygame.image.load('End/background.jpg')
 
     over_img = pygame.transform.scale(over_img, (1280, 720))
     over_img2 = pygame.transform.scale(over_img2, (1280, 720))
@@ -268,8 +268,8 @@ async def main():
 
     # END OBJECTS
 
-    obsidian_img = pygame.image.load('End/wall2.png')
-    endstone_img = pygame.image.load('End/wall1.png')
+    obsidian_img = pygame.image.load('End/wall2.jpg')
+    endstone_img = pygame.image.load('End/wall1.jpg')
 
     obisidan_img = pygame.transform.scale(obsidian_img, (90, 90))
     endstone_img = pygame.transform.scale(endstone_img, (100, 100))
@@ -306,8 +306,8 @@ async def main():
 
     # NETHER OBJECTS
 
-    soulsand_img = pygame.image.load('Nether/wall1.png')
-    netherbrick_img = pygame.image.load('Nether/wall2.png')
+    soulsand_img = pygame.image.load('Nether/wall1.jpg')
+    netherbrick_img = pygame.image.load('Nether/wall2.jpg')
 
     soulsand_img = pygame.transform.scale(soulsand_img, (100, 100))
     netherbrick_img = pygame.transform.scale(netherbrick_img, (100, 100))
@@ -344,8 +344,8 @@ async def main():
 
     # OVERWORLD OBJECTS
 
-    grassblock_img = pygame.image.load('Overworld/wall2.png')
-    diamond_img = pygame.image.load('Overworld/wall1.png')
+    grassblock_img = pygame.image.load('Overworld/wall2.jpg')
+    diamond_img = pygame.image.load('Overworld/wall1.jpg')
     #flag_img = pygame.image.load('pepstein_flag.png')
 
     grassblock_img = pygame.transform.scale(grassblock_img, (100,100))
@@ -382,9 +382,9 @@ async def main():
 
     # PLAYERS 
 
-    ovrplayer_img = pygame.image.load('Overworld/player.png')
-    netherplayer_img = pygame.image.load('Nether/player.png')
-    endplayer_img = pygame.image.load('End/player.png')
+    ovrplayer_img = pygame.image.load('Overworld/player.jpg')
+    netherplayer_img = pygame.image.load('Nether/player.jpg')
+    endplayer_img = pygame.image.load('End/player.jpg')
 
     # current_player = ovrplayer_img
     # current_player = pygame.transform.scale(current_player, (90, 90))
@@ -429,7 +429,7 @@ async def main():
                   obsidian_rect4]
                   
     player = Player(
-        image_path='Overworld/player.png',
+        image_path='Overworld/player.jpg',
         default_pos=(20, 680)
     )
 
@@ -442,8 +442,6 @@ async def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        print(player.rect.x)
-        print(player.rect.y)
         screen.blit(current_bg, (0, 0))
         # screen.blit(current_player, player_rect)
         # pygame.draw.rect(screen, (255, 0, 0), player_rect, 2 )
@@ -565,29 +563,36 @@ async def main():
         # OFFICIAL BG AND ASSETS SWITCHES
         if current_bg == over_img:
             if player.rect.colliderect(portal_rect):
-                current_bg == over_img2
+                current_bg = over_img2
                 player.img = ovrplayer_img
+                player.hitboxlist = rects_list_overworld2
 
         if current_bg == over_img2:
             if player.rect.colliderect(portal_rect2):
-                current_bg == nether_img
-                player.img == netherplayer_img
+                current_bg = nether_img
+                player.img = netherplayer_img
+                player.hitboxlist = rects_list_nether1
 
         if current_bg == nether_img:
             if player.rect.colliderect(portal_rect3):
-                current_bg == nether_img2
+                current_bg = nether_img2
+                player.hitboxlist = rects_list_nether2
 
         if current_bg == nether_img2:
             if player.rect.colliderect(portal_rect4):
-                current_bg == end_img
+                current_bg = end_img
                 player.img = endplayer_img
+                player.hitboxlist = rects_list_end1
+
 
         if current_bg == end_img:
             if player.rect.colliderect(portal_rect5):
-                current_bg == end_img2
-
+                current_bg = end_img2
+                player.hitboxlist = rects_list_end2
+                
         if current_bg == end_img2:
             if player.rect.colliderect(portal_rect6):
+                current_bg = finalend_img
                 pass
         
 
@@ -626,7 +631,7 @@ async def main():
         pygame.display.flip()
         pygame.display.update()
         print("Hello, world!")
-        asyncio.sleep(0)
+        await asyncio.sleep(0)
     pygame.quit()
 
 print("Hello, world! 2")
