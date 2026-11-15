@@ -114,7 +114,6 @@ class Player():
             if old_rect.bottom <= collidedrect.top:
                 self.rect.bottom = collidedrect.top
                 self.velocity_y = -abs(old_vel_y)
-                # Pokud chceš, aby ho to vystřelilo i do strany podle směru:
                 self.velocity_x = abs(old_vel_x) if self.direction == "right" else -abs(old_vel_x)
                 
             # From bottom
